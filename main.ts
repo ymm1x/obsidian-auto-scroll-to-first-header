@@ -5,12 +5,14 @@ interface AutoScrollToFirstHeaderPluginSettings {
 	scrollDelayMs: number;
 	enableAdjustPaddingForNonScrollable: boolean;
 	moveCursorToFirstHeader: boolean;
+	enableSmoothScroll: boolean;
 }
 
 const DEFAULT_SETTINGS: AutoScrollToFirstHeaderPluginSettings = {
 	scrollDelayMs: 100,
 	enableAdjustPaddingForNonScrollable: false,
 	moveCursorToFirstHeader: true,
+	enableSmoothScroll: false,
 };
 
 class AutoScrollToFirstHeaderSettingTab extends PluginSettingTab {
@@ -36,29 +38,41 @@ class AutoScrollToFirstHeaderSettingTab extends PluginSettingTab {
 					});
 			});
 
-			new Setting(containerEl)
-				.setName('Enable auto-scroll even for non-scrollable content')
-				.setDesc('If checked, auto-scroll will be triggered even when the content does not require vertical scrolling.')
-				.addToggle(toggle => {
-					toggle
-						.setValue(this.plugin.settings.enableAdjustPaddingForNonScrollable)
-						.onChange(async (value) => {
-							this.plugin.settings.enableAdjustPaddingForNonScrollable = value;
-							await this.plugin.saveSettings();
-						});
-				});
+		new Setting(containerEl)
+			.setName('Enable auto-scroll even for non-scrollable content')
+			.setDesc('If checked, auto-scroll will be triggered even when the content does not require vertical scrolling.')
+			.addToggle(toggle => {
+				toggle
+					.setValue(this.plugin.settings.enableAdjustPaddingForNonScrollable)
+					.onChange(async (value) => {
+						this.plugin.settings.enableAdjustPaddingForNonScrollable = value;
+						await this.plugin.saveSettings();
+					});
+			});
 
-			new Setting(containerEl)
-				.setName('Move cursor to the first header line automatically')
-				.setDesc('If checked, the cursor will be moved to the first header line when a file is opened.')
-				.addToggle(toggle => {
-					toggle
-						.setValue(this.plugin.settings.moveCursorToFirstHeader)
-						.onChange(async (value) => {
-							this.plugin.settings.moveCursorToFirstHeader = value;
-							await this.plugin.saveSettings();
-						});
-				});
+		new Setting(containerEl)
+			.setName('Move cursor to the first header line automatically')
+			.setDesc('If checked, the cursor will be moved to the first header line when a file is opened.')
+			.addToggle(toggle => {
+				toggle
+					.setValue(this.plugin.settings.moveCursorToFirstHeader)
+					.onChange(async (value) => {
+						this.plugin.settings.moveCursorToFirstHeader = value;
+						await this.plugin.saveSettings();
+					});
+			});
+
+		new Setting(containerEl)
+			.setName('Enable smooth scroll animation')
+			.setDesc('If checked, scrolling to the first header will be animated smoothly.')
+			.addToggle(toggle => {
+				toggle
+					.setValue(this.plugin.settings.enableSmoothScroll)
+					.onChange(async (value) => {
+						this.plugin.settings.enableSmoothScroll = value;
+						await this.plugin.saveSettings();
+					});
+			});
 	}
 }
 
@@ -126,20 +140,20 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 		}
 	}
 
-		private scrollEditorToFirstHeader(view: MarkdownView) {
-			const editor = view.editor;
-			const lineCount = editor.lineCount();
-			for (let i = 0; i < lineCount; i++) {
-				const line = editor.getLine(i);
-				if (/^\s*#+\s+/.test(line)) {
-					if (this.settings.moveCursorToFirstHeader) {
-						editor.setCursor({ line: i, ch: 0 });
-					}
-					this.scrollEditorLineIntoView(view, i);
-					break;
+	private scrollEditorToFirstHeader(view: MarkdownView) {
+		const editor = view.editor;
+		const lineCount = editor.lineCount();
+		for (let i = 0; i < lineCount; i++) {
+			const line = editor.getLine(i);
+			if (/^\s*#+\s+/.test(line)) {
+				if (this.settings.moveCursorToFirstHeader) {
+					editor.setCursor({ line: i, ch: 0 });
 				}
+				this.scrollEditorLineIntoView(view, i);
+				break;
 			}
 		}
+	}
 
 	private scrollEditorLineIntoView(view: MarkdownView, lineNumber: number) {
 		const editorEl = typeof (view.editor as any).getWrapperElement === 'function'
@@ -148,7 +162,10 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 		if (editorEl) {
 			const lines = editorEl.querySelectorAll('.cm-line');
 			if (lines && lines[lineNumber]) {
-				(lines[lineNumber] as HTMLElement).scrollIntoView({ block: 'start', behavior: 'auto' });
+				(lines[lineNumber] as HTMLElement).scrollIntoView({
+					block: 'start',
+					behavior: this.settings.enableSmoothScroll ? 'smooth' : 'auto',
+				});
 			}
 		}
 	}
@@ -158,7 +175,10 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 		if (!container) return;
 		const header = container.querySelector('.markdown-preview-view h1, .markdown-preview-view h2, .markdown-preview-view h3, .markdown-preview-view h4, .markdown-preview-view h5, .markdown-preview-view h6');
 		if (header && (header as HTMLElement).scrollIntoView) {
-			(header as HTMLElement).scrollIntoView({ block: 'start', behavior: 'auto' });
+			(header as HTMLElement).scrollIntoView({
+				block: 'start',
+				behavior: this.settings.enableSmoothScroll ? 'smooth' : 'auto',
+			});
 		}
 	}
 }
