@@ -1,6 +1,5 @@
 import { Plugin, MarkdownView, PluginSettingTab, Setting, App } from 'obsidian';
 
-// --- 設定の型 ---
 interface AutoScrollToFirstHeaderPluginSettings {
 	scrollDelayMs: number;
 }
@@ -9,7 +8,6 @@ const DEFAULT_SETTINGS: AutoScrollToFirstHeaderPluginSettings = {
 	scrollDelayMs: 100,
 };
 
-// --- 設定タブクラス ---
 class AutoScrollToFirstHeaderSettingTab extends PluginSettingTab {
 	plugin: AutoScrollToFirstHeaderPlugin;
 
@@ -26,7 +24,7 @@ class AutoScrollToFirstHeaderSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Scroll delay (ms)')
-			.setDesc('Delay in milliseconds before scrolling to the first header when a file is opened. (default: 100 ms)')
+			.setDesc('Delay in milliseconds before scrolling to the first header when a file is opened.')
 			.addSlider(slider => {
 				slider
 					.setLimits(0, 2000, 10)
@@ -40,7 +38,6 @@ class AutoScrollToFirstHeaderSettingTab extends PluginSettingTab {
 	}
 }
 
-// --- プラグイン本体 ---
 export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 	settings!: AutoScrollToFirstHeaderPluginSettings;
 
@@ -73,21 +70,13 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 		const editor = view.editor;
 		if (!editor) return;
 
-		// setTimeoutで遅延してscrollToFirstHeaderを呼び出す
 		setTimeout(() => {
-			// リンクジャンプ時は自動スクロールしない
 			const containsFlashingSpan = this.app.workspace.containerEl.querySelector('span.is-flashing');
-			if (containsFlashingSpan) {
-				return;
-			}
-			// scroll beyond last line: .cm-content.cm-lineWrapping に padding-bottom を設定
+			if (containsFlashingSpan) return;
 			const cmContent = view.containerEl.querySelector('.cm-content.cm-lineWrapping') as HTMLElement | null;
-			if (cmContent) {
-				const parent = cmContent.parentElement;
-				if (parent) {
-					const visibleHeight = parent.clientHeight;
-					cmContent.style.paddingBottom = `${visibleHeight}px`;
-				}
+			if (cmContent?.parentElement) {
+				const visibleHeight = cmContent.parentElement.clientHeight;
+				cmContent.style.paddingBottom = `${visibleHeight}px`;
 			}
 			this.scrollToFirstHeader();
 		}, this.settings.scrollDelayMs);
@@ -99,7 +88,7 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 		const view = leaf.view;
 		if (!(view instanceof MarkdownView)) return;
 
-		const mode = view.getMode ? view.getMode() : (view as any).mode;
+		const mode = typeof view.getMode === 'function' ? view.getMode() : (view as { mode?: string }).mode;
 		if (mode === 'source' || mode === 'live') {
 			const lineCount = view.editor.lineCount();
 			let headerLine = -1;
@@ -112,8 +101,9 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 			}
 			if (headerLine >= 0) {
 				view.editor.setCursor({ line: headerLine, ch: 0 });
-				// getWrapperElementは環境によって未定義の場合があるため、なければcontainerElを使う
-				const editorEl = (view.editor as any).getWrapperElement?.() || view.containerEl;
+				const editorEl = typeof (view.editor as any).getWrapperElement === 'function'
+					? (view.editor as any).getWrapperElement()
+					: view.containerEl;
 				if (editorEl) {
 					const lines = editorEl.querySelectorAll('.cm-line');
 					if (lines && lines[headerLine]) {
