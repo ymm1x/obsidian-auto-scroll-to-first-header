@@ -79,6 +79,16 @@ class AutoScrollToFirstHeaderSettingTab extends PluginSettingTab {
 export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 	settings!: AutoScrollToFirstHeaderPluginSettings;
 
+	private findFirstHeaderLine(text: string): number | null {
+		const lines = text.split(/\r?\n/);
+		for (let i = 0; i < lines.length; i++) {
+			if (/^\s*#+\s+/.test(lines[i])) {
+				return i;
+			}
+		}
+		return null;
+	}
+
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 	}
@@ -158,16 +168,13 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 
 	private scrollEditorToFirstHeader(view: MarkdownView) {
 		const editor = view.editor;
-		const lineCount = editor.lineCount();
-		for (let i = 0; i < lineCount; i++) {
-			const line = editor.getLine(i);
-			if (/^\s*#+\s+/.test(line)) {
-				if (this.settings.moveCursorToFirstHeader) {
-					editor.setCursor({ line: i, ch: 0 });
-				}
-				this.scrollEditorLineIntoView(view, i);
-				break;
+		const text = editor.getValue();
+		const headerLine = this.findFirstHeaderLine(text);
+		if (headerLine !== null) {
+			if (this.settings.moveCursorToFirstHeader) {
+				editor.setCursor({ line: headerLine, ch: 0 });
 			}
+			this.scrollEditorLineIntoView(view, headerLine);
 		}
 	}
 
@@ -193,13 +200,28 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 	private scrollPreviewToFirstHeader(view: MarkdownView) {
 		try {
 			const container = (view as any).previewMode?.containerEl || view.containerEl;
-			if (!container) { return; }
+			if (!container) {
+				return;
+			}
 			const header = container.querySelector('.markdown-preview-view h1, .markdown-preview-view h2, .markdown-preview-view h3, .markdown-preview-view h4, .markdown-preview-view h5, .markdown-preview-view h6');
 			if (header && (header as HTMLElement).scrollIntoView) {
 				(header as HTMLElement).scrollIntoView({
 					block: 'start',
 					behavior: this.settings.enableSmoothScroll ? 'smooth' : 'auto',
 				});
+			} else {
+				const editor = view.editor;
+				const text = editor.getValue();
+				const headerLine = this.findFirstHeaderLine(text);
+				if (headerLine !== null) {
+					const lineElements = container.querySelectorAll('.markdown-preview-view .cm-line');
+					if (lineElements && lineElements[headerLine]) {
+						(lineElements[headerLine] as HTMLElement).scrollIntoView({
+							block: 'start',
+							behavior: this.settings.enableSmoothScroll ? 'smooth' : 'auto',
+						});
+					}
+				}
 			}
 		} catch (e) {
 			console.error('scrollPreviewToFirstHeader error:', e);
