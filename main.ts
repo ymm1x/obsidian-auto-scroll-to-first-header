@@ -40,7 +40,7 @@ class AutoScrollToFirstHeaderSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Enable auto-scroll even for non-scrollable content')
-			.setDesc('If checked, auto-scroll will be triggered even when the content does not require vertical scrolling.')
+			.setDesc('If checked, auto-scroll will be triggered even when the content does not require vertical scrolling.\nAs a side effect, you will be able to scroll beyond the last line.')
 			.addToggle(toggle => {
 				toggle
 					.setValue(this.plugin.settings.enableAdjustPaddingForNonScrollable)
