@@ -4,11 +4,13 @@ import { Plugin, MarkdownView, PluginSettingTab, Setting, App, WorkspaceLeaf } f
 interface AutoScrollToFirstHeaderPluginSettings {
 	scrollDelayMs: number;
 	enableAdjustPaddingForNonScrollable: boolean;
+	moveCursorToFirstHeader: boolean;
 }
 
 const DEFAULT_SETTINGS: AutoScrollToFirstHeaderPluginSettings = {
 	scrollDelayMs: 100,
 	enableAdjustPaddingForNonScrollable: false,
+	moveCursorToFirstHeader: true,
 };
 
 class AutoScrollToFirstHeaderSettingTab extends PluginSettingTab {
@@ -34,17 +36,29 @@ class AutoScrollToFirstHeaderSettingTab extends PluginSettingTab {
 					});
 			});
 
-		new Setting(containerEl)
-			.setName('Enable auto-scroll even for non-scrollable content')
-			.setDesc('If checked, auto-scroll will be triggered even when the content does not require vertical scrolling.')
-			.addToggle(toggle => {
-				toggle
-					.setValue(this.plugin.settings.enableAdjustPaddingForNonScrollable)
-					.onChange(async (value) => {
-						this.plugin.settings.enableAdjustPaddingForNonScrollable = value;
-						await this.plugin.saveSettings();
-					});
-			});
+			new Setting(containerEl)
+				.setName('Enable auto-scroll even for non-scrollable content')
+				.setDesc('If checked, auto-scroll will be triggered even when the content does not require vertical scrolling.')
+				.addToggle(toggle => {
+					toggle
+						.setValue(this.plugin.settings.enableAdjustPaddingForNonScrollable)
+						.onChange(async (value) => {
+							this.plugin.settings.enableAdjustPaddingForNonScrollable = value;
+							await this.plugin.saveSettings();
+						});
+				});
+
+			new Setting(containerEl)
+				.setName('Move cursor to the first header line automatically')
+				.setDesc('If checked, the cursor will be moved to the first header line when a file is opened.')
+				.addToggle(toggle => {
+					toggle
+						.setValue(this.plugin.settings.moveCursorToFirstHeader)
+						.onChange(async (value) => {
+							this.plugin.settings.moveCursorToFirstHeader = value;
+							await this.plugin.saveSettings();
+						});
+				});
 	}
 }
 
@@ -112,18 +126,20 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 		}
 	}
 
-	private scrollEditorToFirstHeader(view: MarkdownView) {
-		const editor = view.editor;
-		const lineCount = editor.lineCount();
-		for (let i = 0; i < lineCount; i++) {
-			const line = editor.getLine(i);
-			if (/^\s*#+\s+/.test(line)) {
-				editor.setCursor({ line: i, ch: 0 });
-				this.scrollEditorLineIntoView(view, i);
-				break;
+		private scrollEditorToFirstHeader(view: MarkdownView) {
+			const editor = view.editor;
+			const lineCount = editor.lineCount();
+			for (let i = 0; i < lineCount; i++) {
+				const line = editor.getLine(i);
+				if (/^\s*#+\s+/.test(line)) {
+					if (this.settings.moveCursorToFirstHeader) {
+						editor.setCursor({ line: i, ch: 0 });
+					}
+					this.scrollEditorLineIntoView(view, i);
+					break;
+				}
 			}
 		}
-	}
 
 	private scrollEditorLineIntoView(view: MarkdownView, lineNumber: number) {
 		const editorEl = typeof (view.editor as any).getWrapperElement === 'function'
