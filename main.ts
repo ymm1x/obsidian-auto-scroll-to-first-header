@@ -1,11 +1,14 @@
 import { Plugin, MarkdownView, PluginSettingTab, Setting, App, WorkspaceLeaf } from 'obsidian';
 
+
 interface AutoScrollToFirstHeaderPluginSettings {
 	scrollDelayMs: number;
+	enableAdjustPaddingForNonScrollable: boolean;
 }
 
 const DEFAULT_SETTINGS: AutoScrollToFirstHeaderPluginSettings = {
 	scrollDelayMs: 100,
+	enableAdjustPaddingForNonScrollable: false,
 };
 
 class AutoScrollToFirstHeaderSettingTab extends PluginSettingTab {
@@ -27,6 +30,18 @@ class AutoScrollToFirstHeaderSettingTab extends PluginSettingTab {
 					.setDynamicTooltip()
 					.onChange(async (value) => {
 						this.plugin.settings.scrollDelayMs = value;
+						await this.plugin.saveSettings();
+					});
+			});
+
+		new Setting(containerEl)
+			.setName('Enable auto-scroll even for non-scrollable content')
+			.setDesc('If checked, auto-scroll will be triggered even when the content does not require vertical scrolling.')
+			.addToggle(toggle => {
+				toggle
+					.setValue(this.plugin.settings.enableAdjustPaddingForNonScrollable)
+					.onChange(async (value) => {
+						this.plugin.settings.enableAdjustPaddingForNonScrollable = value;
 						await this.plugin.saveSettings();
 					});
 			});
@@ -62,7 +77,9 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 
 		setTimeout(() => {
 			if (this.isFlashing()) return;
-			this.adjustPadding(view);
+			if (this.settings.enableAdjustPaddingForNonScrollable) {
+				this.adjustPadding(view);
+			}
 			this.scrollToFirstHeader(view);
 		}, this.settings.scrollDelayMs);
 	}
