@@ -1,11 +1,11 @@
 {
-	"id": "sample-plugin",
+	"id": "obsidian-auto-scroll-to-first-header",
 	"name": "Auto Scroll To First Header",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"description": "Automatically scrolls to the first header when opening a note. Configurable delay.",
+	"author": "ymm1x",
+	"authorUrl": "https://github.com/ymm1x",
+	"fundingUrl": "",
 	"isDesktopOnly": false
 }
