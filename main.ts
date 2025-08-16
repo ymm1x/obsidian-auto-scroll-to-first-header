@@ -98,13 +98,19 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 
 	private handleFileOpen() {
 		const leaf = this.getActiveMarkdownLeaf();
-		if (!leaf) return;
+		if (!leaf) {
+			return;
+		}
 		const view = leaf.view as MarkdownView;
 		const editor = view.editor;
-		if (!editor) return;
+		if (!editor) {
+			return;
+		}
 
 		setTimeout(() => {
-			if (this.isFlashing()) return;
+			if (this.isFlashing()) {
+				return;
+			}
 			if (this.settings.enableAdjustPaddingForNonScrollable) {
 				this.adjustPadding(view);
 			}
@@ -114,8 +120,12 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 
 	private getActiveMarkdownLeaf(): WorkspaceLeaf | null {
 		const leaf = this.app.workspace.activeLeaf;
-		if (!leaf) return null;
-		if (!(leaf.view instanceof MarkdownView)) return null;
+		if (!leaf) {
+			return null;
+		}
+		if (!(leaf.view instanceof MarkdownView)) {
+			return null;
+		}
 		return leaf;
 	}
 
@@ -172,7 +182,7 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 
 	private scrollPreviewToFirstHeader(view: MarkdownView) {
 		const container = (view as any).previewMode?.containerEl || view.containerEl;
-		if (!container) return;
+		if (!container) { return; }
 		const header = container.querySelector('.markdown-preview-view h1, .markdown-preview-view h2, .markdown-preview-view h3, .markdown-preview-view h4, .markdown-preview-view h5, .markdown-preview-view h6');
 		if (header && (header as HTMLElement).scrollIntoView) {
 			(header as HTMLElement).scrollIntoView({
