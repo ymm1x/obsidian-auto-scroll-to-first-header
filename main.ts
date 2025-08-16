@@ -134,10 +134,16 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 	}
 
 	private adjustPadding(view: MarkdownView) {
-		const cmContent = view.containerEl.querySelector('.cm-content.cm-lineWrapping') as HTMLElement | null;
-		if (cmContent?.parentElement) {
-			const visibleHeight = cmContent.parentElement.clientHeight;
-			cmContent.style.paddingBottom = `${visibleHeight}px`;
+		try {
+			const cmContent = view.containerEl.querySelector('.cm-content.cm-lineWrapping') as HTMLElement | null;
+			if (cmContent && cmContent.parentElement) {
+				const visibleHeight = cmContent.parentElement.clientHeight;
+				cmContent.style.paddingBottom = `${visibleHeight}px`;
+			} else {
+				console.warn('cm-content.cm-lineWrapping not found or has no parentElement');
+			}
+		} catch (e) {
+			console.error('adjustPadding error:', e);
 		}
 	}
 
@@ -166,29 +172,37 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 	}
 
 	private scrollEditorLineIntoView(view: MarkdownView, lineNumber: number) {
-		const editorEl = typeof (view.editor as any).getWrapperElement === 'function'
-			? (view.editor as any).getWrapperElement()
-			: view.containerEl;
-		if (editorEl) {
-			const lines = editorEl.querySelectorAll('.cm-line');
-			if (lines && lines[lineNumber]) {
-				(lines[lineNumber] as HTMLElement).scrollIntoView({
-					block: 'start',
-					behavior: this.settings.enableSmoothScroll ? 'smooth' : 'auto',
-				});
+		try {
+			const editorEl = typeof (view.editor as any).getWrapperElement === 'function'
+				? (view.editor as any).getWrapperElement()
+				: view.containerEl;
+			if (editorEl) {
+				const lines = editorEl.querySelectorAll('.cm-line');
+				if (lines && lines[lineNumber]) {
+					(lines[lineNumber] as HTMLElement).scrollIntoView({
+						block: 'start',
+						behavior: this.settings.enableSmoothScroll ? 'smooth' : 'auto',
+					});
+				}
 			}
+		} catch (e) {
+			console.error('scrollEditorLineIntoView error:', e);
 		}
 	}
 
 	private scrollPreviewToFirstHeader(view: MarkdownView) {
-		const container = (view as any).previewMode?.containerEl || view.containerEl;
-		if (!container) { return; }
-		const header = container.querySelector('.markdown-preview-view h1, .markdown-preview-view h2, .markdown-preview-view h3, .markdown-preview-view h4, .markdown-preview-view h5, .markdown-preview-view h6');
-		if (header && (header as HTMLElement).scrollIntoView) {
-			(header as HTMLElement).scrollIntoView({
-				block: 'start',
-				behavior: this.settings.enableSmoothScroll ? 'smooth' : 'auto',
-			});
+		try {
+			const container = (view as any).previewMode?.containerEl || view.containerEl;
+			if (!container) { return; }
+			const header = container.querySelector('.markdown-preview-view h1, .markdown-preview-view h2, .markdown-preview-view h3, .markdown-preview-view h4, .markdown-preview-view h5, .markdown-preview-view h6');
+			if (header && (header as HTMLElement).scrollIntoView) {
+				(header as HTMLElement).scrollIntoView({
+					block: 'start',
+					behavior: this.settings.enableSmoothScroll ? 'smooth' : 'auto',
+				});
+			}
+		} catch (e) {
+			console.error('scrollPreviewToFirstHeader error:', e);
 		}
 	}
 }
