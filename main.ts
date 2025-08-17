@@ -79,10 +79,21 @@ class AutoScrollToFirstHeaderSettingTab extends PluginSettingTab {
 export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 	settings!: AutoScrollToFirstHeaderPluginSettings;
 
-	private findFirstHeaderLine(text: string): number | null {
-		const lines = text.split(/\r?\n/);
+	private findFirstHeaderLine(editorEl: HTMLElement): number | null {
+		const headerLines = editorEl.querySelectorAll('.cm-line.HyperMD-header');
+		if (headerLines.length > 0) { // is live preview
+			const allLines = editorEl.querySelectorAll('.cm-line');
+			for (let i = 0; i < allLines.length; i++) {
+				if (allLines[i] === headerLines[0]) {
+					return i;
+				}
+			}
+		}
+		// is not live preview or no header lines found
+		const lines = editorEl.querySelectorAll('.cm-line');
 		for (let i = 0; i < lines.length; i++) {
-			if (/^\s*#+\s+/.test(lines[i])) {
+			const text = lines[i].textContent ?? "";
+			if (/^\s*#+\s+/.test(text)) {
 				return i;
 			}
 		}
@@ -168,8 +179,10 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 
 	private scrollEditorToFirstHeader(view: MarkdownView) {
 		const editor = view.editor;
-		const text = editor.getValue();
-		const headerLine = this.findFirstHeaderLine(text);
+		const editorEl = typeof (editor as any).getWrapperElement === 'function'
+			? (editor as any).getWrapperElement()
+			: view.containerEl;
+		const headerLine = this.findFirstHeaderLine(editorEl);
 		if (headerLine !== null) {
 			if (this.settings.moveCursorToFirstHeader) {
 				editor.setCursor({ line: headerLine, ch: 0 });
@@ -222,8 +235,10 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 				});
 			} else {
 				const editor = view.editor;
-				const text = editor.getValue();
-				const headerLine = this.findFirstHeaderLine(text);
+				const editorEl = typeof (editor as any).getWrapperElement === 'function'
+					? (editor as any).getWrapperElement()
+					: view.containerEl;
+				const headerLine = this.findFirstHeaderLine(editorEl);
 				if (headerLine !== null) {
 					const lineElements = container.querySelectorAll('.markdown-preview-view .cm-line');
 					if (lineElements && lineElements[headerLine]) {
