@@ -139,11 +139,6 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 			if (this.isFlashing()) {
 				return;
 			}
-			const editorEl = this.getEditorEl(view);
-			const firstHeaderLine = this.findFirstHeaderLine(editorEl);
-			if (firstHeaderLine === 0) {
-				return;
-			}
 			if (this.settings.enableAdjustPaddingForNonScrollable) {
 				this.adjustPadding(view);
 			}
