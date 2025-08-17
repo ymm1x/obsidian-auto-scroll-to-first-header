@@ -162,12 +162,18 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 	}
 
 	private adjustPadding(view: MarkdownView) {
-		const editor = view.containerEl.querySelector('.cm-editor') as HTMLElement | null;
-		const sizer = view.containerEl.querySelector('.cm-sizer') as HTMLElement | null;
-		if (editor && sizer) {
-			const editorHeight = Math.max(editor.clientHeight, 1);
+		const viewContent = view.containerEl.querySelector('.view-content') as HTMLElement | null;
+		const cmSizer = view.containerEl.querySelector('.cm-sizer') as HTMLElement | null;
+		const markdownPreviewView = view.containerEl.querySelector('.markdown-preview-view') as HTMLElement | null;
+		if (viewContent) {
+			const editorHeight = Math.max(viewContent.clientHeight, 1);
 			const padding = editorHeight / 1.5;
-			sizer.style.paddingBottom = `${padding}px`;
+			if (cmSizer) {
+				cmSizer.style.paddingBottom = `${padding}px`;
+			}
+			if (markdownPreviewView) {
+				markdownPreviewView.style.paddingBottom = `${padding}px`;
+			}
 		}
 	}
 
