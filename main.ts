@@ -167,16 +167,12 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 	}
 
 	private adjustPadding(view: MarkdownView) {
-		try {
-			const cmContent = view.containerEl.querySelector('.cm-content.cm-lineWrapping') as HTMLElement | null;
-			if (cmContent && cmContent.parentElement) {
-				const visibleHeight = cmContent.parentElement.clientHeight;
-				cmContent.style.paddingBottom = `${visibleHeight}px`;
-			} else {
-				console.warn('cm-content.cm-lineWrapping not found or has no parentElement');
-			}
-		} catch (e) {
-			console.error('adjustPadding error:', e);
+		const editor = view.containerEl.querySelector('.cm-editor') as HTMLElement | null;
+		const sizer = view.containerEl.querySelector('.cm-sizer') as HTMLElement | null;
+		if (editor && sizer) {
+			const editorHeight = Math.max(editor.clientHeight, 1);
+			const padding = editorHeight / 1.5;
+			sizer.style.paddingBottom = `${padding}px`;
 		}
 	}
 
