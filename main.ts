@@ -132,9 +132,19 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 			if (this.isFlashing()) {
 				return;
 			}
+
+			const editorEl = typeof (editor as any).getWrapperElement === 'function'
+				? (editor as any).getWrapperElement()
+				: view.containerEl;
+			const firstHeaderLine = this.findFirstHeaderLine(editorEl);
+			if (firstHeaderLine === 0) {
+				return;
+			}
+
 			if (this.settings.enableAdjustPaddingForNonScrollable) {
 				this.adjustPadding(view);
 			}
+
 			this.scrollToFirstHeader(view);
 		}, this.settings.scrollDelayMs);
 	}
