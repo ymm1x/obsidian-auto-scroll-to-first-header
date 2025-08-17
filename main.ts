@@ -238,7 +238,6 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 					behavior: this.settings.enableSmoothScroll ? 'smooth' : 'auto',
 				});
 			} else {
-				const editor = view.editor;
 				const editorEl = this.getEditorEl(view);
 				const headerLine = this.findFirstHeaderLine(editorEl);
 				if (headerLine !== null) {
