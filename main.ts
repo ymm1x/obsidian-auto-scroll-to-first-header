@@ -77,6 +77,13 @@ class AutoScrollToFirstHeaderSettingTab extends PluginSettingTab {
 }
 
 export default class AutoScrollToFirstHeaderPlugin extends Plugin {
+	private getEditorEl(view: MarkdownView): HTMLElement {
+		const editor = view.editor;
+		if (editor && typeof (editor as any).getWrapperElement === 'function') {
+			return (editor as any).getWrapperElement();
+		}
+		return view.containerEl;
+	}
 	settings!: AutoScrollToFirstHeaderPluginSettings;
 
 	private findFirstHeaderLine(editorEl: HTMLElement): number | null {
@@ -132,19 +139,14 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 			if (this.isFlashing()) {
 				return;
 			}
-
-			const editorEl = typeof (editor as any).getWrapperElement === 'function'
-				? (editor as any).getWrapperElement()
-				: view.containerEl;
+			const editorEl = this.getEditorEl(view);
 			const firstHeaderLine = this.findFirstHeaderLine(editorEl);
 			if (firstHeaderLine === 0) {
 				return;
 			}
-
 			if (this.settings.enableAdjustPaddingForNonScrollable) {
 				this.adjustPadding(view);
 			}
-
 			this.scrollToFirstHeader(view);
 		}, this.settings.scrollDelayMs);
 	}
@@ -189,9 +191,7 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 
 	private scrollEditorToFirstHeader(view: MarkdownView) {
 		const editor = view.editor;
-		const editorEl = typeof (editor as any).getWrapperElement === 'function'
-			? (editor as any).getWrapperElement()
-			: view.containerEl;
+		const editorEl = this.getEditorEl(view);
 		const headerLine = this.findFirstHeaderLine(editorEl);
 		if (headerLine !== null) {
 			if (this.settings.moveCursorToFirstHeader) {
@@ -203,9 +203,7 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 
 	private scrollEditorLineIntoView(view: MarkdownView, lineNumber: number) {
 		try {
-			const editorEl = typeof (view.editor as any).getWrapperElement === 'function'
-				? (view.editor as any).getWrapperElement()
-				: view.containerEl;
+			const editorEl = this.getEditorEl(view);
 			if (editorEl) {
 				const lines = editorEl.querySelectorAll('.cm-line');
 				if (lines && lines[lineNumber]) {
@@ -245,9 +243,7 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 				});
 			} else {
 				const editor = view.editor;
-				const editorEl = typeof (editor as any).getWrapperElement === 'function'
-					? (editor as any).getWrapperElement()
-					: view.containerEl;
+				const editorEl = this.getEditorEl(view);
 				const headerLine = this.findFirstHeaderLine(editorEl);
 				if (headerLine !== null) {
 					const lineElements = container.querySelectorAll('.markdown-preview-view .cm-line');
