@@ -186,10 +186,21 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 			if (editorEl) {
 				const lines = editorEl.querySelectorAll('.cm-line');
 				if (lines && lines[lineNumber]) {
-					(lines[lineNumber] as HTMLElement).scrollIntoView({
-						block: 'start',
-						behavior: this.settings.enableSmoothScroll ? 'smooth' : 'auto',
-					});
+					const target = lines[lineNumber] as HTMLElement;
+					if (this.settings.enableSmoothScroll) {
+						const scroller = editorEl.querySelector('.cm-scroller') as HTMLElement;
+						if (scroller) {
+							const targetRect = target.getBoundingClientRect();
+							const scrollerRect = scroller.getBoundingClientRect();
+							const offset = targetRect.top - scrollerRect.top + scroller.scrollTop;
+							scroller.scrollTo({ top: offset, behavior: 'smooth' });
+						} else {
+							// fallback
+							target.scrollIntoView({ block: 'start', behavior: 'smooth' });
+						}
+					} else {
+						target.scrollIntoView({ block: 'start', behavior: 'auto' });
+					}
 				}
 			}
 		} catch (e) {
