@@ -12,7 +12,7 @@ const DEFAULT_SETTINGS: AutoScrollToFirstHeaderPluginSettings = {
 	scrollDelayMs: 100,
 	enableAdjustPaddingForNonScrollable: false,
 	moveCursorToFirstHeader: true,
-	enableSmoothScroll: false,
+	enableSmoothScroll: true,
 };
 
 class AutoScrollToFirstHeaderSettingTab extends PluginSettingTab {
