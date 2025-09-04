@@ -192,7 +192,8 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 		const headerLine = this.findFirstHeaderLine(editorEl);
 		if (headerLine !== null) {
 			if (this.settings.moveCursorToFirstHeader) {
-				editor.setCursor({ line: headerLine, ch: 0 });
+				const headerLineText = editor.getLine(headerLine);
+				editor.setCursor({ line: headerLine, ch: headerLineText.length });
 			}
 			this.scrollEditorLineIntoView(view, headerLine);
 		}
