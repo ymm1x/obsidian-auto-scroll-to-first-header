@@ -29,7 +29,7 @@ class AutoScrollToFirstHeaderSettingTab extends PluginSettingTab {
 			.setDesc('Delay in milliseconds before scrolling to the first header when a file is opened.')
 			.addSlider(slider => {
 				slider
-					.setLimits(0, 2000, 10)
+					.setLimits(0, 1000, 10)
 					.setValue(this.plugin.settings.scrollDelayMs)
 					.setDynamicTooltip()
 					.onChange(async (value) => {
@@ -135,15 +135,37 @@ export default class AutoScrollToFirstHeaderPlugin extends Plugin {
 			return;
 		}
 
-		setTimeout(() => {
+		const editorEl = this.getEditorEl(view);
+		const callScroll = () => {
 			if (this.isFlashing()) {
 				return;
 			}
 			if (this.settings.enableAdjustPaddingForNonScrollable) {
 				this.adjustPadding(view);
+				requestAnimationFrame(() => {
+					setTimeout(() => {
+						this.scrollToFirstHeader(view);
+					}, this.settings.scrollDelayMs);
+				});
+			} else {
+				setTimeout(() => {
+					this.scrollToFirstHeader(view);
+				}, this.settings.scrollDelayMs);
 			}
-			this.scrollToFirstHeader(view);
-		}, this.settings.scrollDelayMs);
+		};
+		const observer = new MutationObserver((mutations, obs) => {
+			const hasHeader = editorEl.querySelector('.cm-line.HyperMD-header') || Array.from(editorEl.querySelectorAll('.cm-line')).some(line => /^\s*#+\s+/.test(line.textContent ?? ""));
+			if (hasHeader) {
+				obs.disconnect();
+				callScroll();
+			}
+		});
+		observer.observe(editorEl, { childList: true, subtree: true, characterData: true });
+		const hasHeader = editorEl.querySelector('.cm-line.HyperMD-header') || Array.from(editorEl.querySelectorAll('.cm-line')).some(line => /^\s*#+\s+/.test(line.textContent ?? ""));
+		if (hasHeader) {
+			observer.disconnect();
+			callScroll();
+		}
 	}
 
 	private getActiveMarkdownLeaf(): WorkspaceLeaf | null {
