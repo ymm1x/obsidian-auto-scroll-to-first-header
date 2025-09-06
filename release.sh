@@ -33,6 +33,7 @@ main() {
 	build
 	version_bump
 	tagging
+	github_release
 }
 
 main
