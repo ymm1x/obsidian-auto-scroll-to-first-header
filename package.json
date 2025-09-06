@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-auto-scroll-to-first-header",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Obsidian plugin: Automatically scrolls to the first header when opening a note. Configurable delay.",
 	"main": "main.js",
 	"scripts": {
